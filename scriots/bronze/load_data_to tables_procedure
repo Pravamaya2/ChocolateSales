@@ -1,0 +1,98 @@
+CREATE OR ALTER PROCEDURE bronze.load_bronze AS
+BEGIN 
+	DECLARE @start_time DATETIME, @end_time DATETIME, @batch_start_time DATETIME, @batch_end_time DATETIME;
+	BEGIN TRY
+		SET @batch_start_time = GETDATE();
+		PRINT('=================================================');
+		PRINT(' Loading the Bronze Layer');
+		PRINT('=================================================');
+
+		PRINT('-------------------------------------------------');
+		PRINT(' Loading Customer Dimension Table');
+		PRINT('-------------------------------------------------');
+		
+		SET @start_time = GETDATE();
+		PRINT '>> Truncating Table:bronze.customer_dimension';
+		TRUNCATE TABLE bronze.customer_dimension;
+		PRINT '>> Loading Table:bronze.customer_dimension';
+		BULK INSERT bronze.customer_dimension
+		FROM 'C:\Dataset\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_CSV_Data_Files\customer_dimension.csv'
+		WITH (
+			FIRSTROW = 2,
+			FIELDTERMINATOR = ',',
+			TABLOCK
+		);
+		SET @end_time = GETDATE();
+		PRINT '>> Load Duration: '+ CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)+'seconds'
+		Print ('---------------')
+
+		
+		PRINT('-------------------------------------------------');
+		PRINT(' Loading Location Dimension Table');
+		PRINT('-------------------------------------------------');
+		
+		SET @start_time = GETDATE();
+		PRINT '>> Truncating Table:bronze.location_dimension';
+		TRUNCATE TABLE bronze.location_dimension;
+		PRINT '>> Loading Table:bronze.location_dimension';
+		BULK INSERT bronze.location_dimension
+		FROM 'C:\Dataset\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_CSV_Data_Files\location_dimension.csv'
+		WITH (
+			FIRSTROW = 2,
+			FIELDTERMINATOR = ',',
+			TABLOCK
+		);
+		SET @end_time = GETDATE();
+		PRINT '>> Load Duration: '+ CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)+'seconds'
+		Print ('---------------')
+		PRINT('-------------------------------------------------');
+		PRINT(' Loading Product Dimension Table');
+		PRINT('-------------------------------------------------');
+
+		SET @start_time = GETDATE();
+		PRINT '>> Truncating Table:bronze.product_dimension';
+		TRUNCATE TABLE bronze.product_dimension;
+		PRINT '>> Loading Table:bronze.product_dimension';
+		BULK INSERT bronze.product_dimension
+		FROM 'C:\Dataset\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_CSV_Data_Files\product_dimension.csv'
+		WITH (
+			FIRSTROW = 2,
+			FIELDTERMINATOR = ',',
+			TABLOCK
+		);
+		SET @end_time = GETDATE();
+		PRINT '>> Load Duration: '+ CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)+'seconds'
+		Print ('---------------')
+
+		
+		PRINT('-------------------------------------------------');
+		PRINT(' Loading Sales Fact Table');
+		PRINT('-------------------------------------------------');
+
+		SET @start_time = GETDATE();
+		PRINT '>> Truncating Table:bronze.sales_fact_table';
+		TRUNCATE TABLE bronze.sales_fact_table;
+		PRINT '>> Loading Table:bronze.sales_fact_table';
+		BULK INSERT bronze.sales_fact_table
+		FROM 'C:\Dataset\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_Analytics_Project_Material\Chocolate_Sales_CSV_Data_Files\sales_fact_table.csv'
+		WITH (
+			FIRSTROW = 2,
+			FIELDTERMINATOR = ',',
+			TABLOCK
+		);
+		SET @end_time = GETDATE();
+		PRINT '>> Load Duration: '+ CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)+'seconds'
+		Print ('---------------')
+		SET @batch_end_time = GETDATE();
+		PRINT '>> Batch Loading Time: '+ CAST(DATEDIFF(second, @batch_start_time, @batch_end_time) AS NVARCHAR)+'seconds'
+
+	END TRY
+	BEGIN CATCH
+		PRINT('===========================================');
+		PRINT('ERROR OCCURED DURING THE LOADING BRONZE LAYER');
+		PRINT('Error Message')+ ERROR_MESSAGE();
+		PRINT('Error Message')+ CAST(ERROR_NUMBER() AS NVARCHAR);
+		PRINT('Error Message')+ CAST(ERROR_STATE() AS NVARCHAR);
+		PRINT('============================================');
+	END CATCH
+END
