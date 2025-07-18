@@ -1,6 +1,13 @@
 /*
-Created Database ChocolateSale and the layer within the database :"bronze, "silver", and "gold"
-Warning :
+===============================================================================================
+Create Database and Schema
+===============================================================================================
+Script Purpose:
+THis scrpit creates a  Database ChocolateSale after checking if it is already exists.
+If the databse exists, it is dropped and recreated. Additionally, the csript sets up three scemas
+within the database :"bronze, "silver", and "gold"
+
+WARNING :
 Running this script will drop the entire 'ChocolateSales' databaseif it exists.
 All data in the database will be permanantly deleted. Processd with cautionand ensure you have proper backup before running this scripts
 */
