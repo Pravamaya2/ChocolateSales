@@ -68,3 +68,106 @@ select month(Date) as Month,Loyalty_Status, sum(Quantity_sold*Cost) as Sales_Amo
 from gold.sales_chocolate
 group by month(Date),Loyalty_Status 
 order by month(Date),sum(Quantity_sold*Cost)
+
+-- Quarterly Sales Trend
+
+SELECT 
+    DATEPART(QUARTER, Date) AS Quarter,
+    SUM(Quantity_sold * Cost) AS Sales_Amount
+FROM gold.sales_chocolate
+GROUP BY DATEPART(QUARTER, Date)
+ORDER BY DATEPART(QUARTER, Date);
+
+-- Monthly Sales Trend in $
+Select
+  Datepart(Month, Date) AS monthly,
+  SUM(Quantity_sold*Cost) as Sales_Amount
+FROM gold.sales_Chocolate
+GRoup BY DATEPART(Month, Date)
+ORDER by DATEPART(Month, Date)
+
+--Daily Sales Trend in $
+
+Select
+  Datepart(WEEKDAY, Date) AS monthly,
+  SUM(Quantity_sold*Cost) as Sales_Amount
+FROM gold.sales_Chocolate
+GRoup BY DATEPART(WEEKDay, Date)
+ORDER by DATEPART(WEEKDAY, Date)
+
+--Total sales by Chocolate_type
+SELECT 
+Chocolate_Type, SUM(Quantity_Sold*Cost) as Total_Sales
+FROM gold.sales_chocolate
+GROUP BY Chocolate_Type
+ORDER BY SUM(Quantity_Sold*Cost) DESC
+
+
+--Total_Sales by Brand
+
+SELECT 
+Brand, SUM(Quantity_Sold*Cost) as Total_Sales
+FROM gold.sales_chocolate
+GROUP BY Brand
+ORDER BY SUM(Quantity_Sold*Cost) DESC
+
+-- Total Sales by Cost Segment
+WITH sales_by_segment AS (
+    SELECT 
+        CASE 
+            WHEN cost > 150 THEN 'Very Costly'
+            WHEN cost > 100 THEN 'High Cost'
+            WHEN cost > 50  THEN 'Avg Cost'
+            ELSE 'Inexpensive'
+        END AS cost_segment,
+        SUM(quantity_sold * cost) AS total_sales
+    FROM gold.sales_chocolate
+    GROUP BY 
+        CASE 
+            WHEN cost > 150 THEN 'Very Costly'
+            WHEN cost > 100 THEN 'High Cost'
+            WHEN cost > 50  THEN 'Avg Cost'
+            ELSE 'Inexpensive'
+        END
+)
+SELECT 
+    cost_segment,
+    ROUND((total_sales * 100.0 / SUM(total_sales) OVER ()), 2) AS percentage_of_sales
+FROM sales_by_segment;
+
+--Top 5 Sales by Product_name
+
+With Sales_Product_Name AS
+(select
+Product_Name,
+SUM(Quantity_Sold*Cost) as Total_Sales,
+DENSE_RANK() OVER(ORDER BY SUM(Quantity_Sold*Cost) desc) rnk
+ FROM gold.sales_chocolate
+ Group by product_name)
+ Select Product_name, Total_Sales
+ from Sales_Product_Name
+ Where rnk <=5
+
+ -- Percentage change over Previous month
+
+ With Monthly_Sales as 
+   (
+	Select 
+	month(Date) as Month_number,
+	Quantity_Sold*Cost AS Total_Sales
+	from gold.sales_chocolate
+	),
+	Monthwise_sales as(
+	SELECT Month_number, 
+	Sum(Total_Sales) as sales_amount,
+	lag(Sum(Total_Sales)) over (ORDER BY Month_Number ASC) as Prev_sales_amount
+	from Monthly_Sales
+	group by Month_number
+	)
+	SELECT 
+	Month_Number, 
+	sales_amount, Prev_sales_amount,
+	((sales_amount-Prev_sales_amount)*1.0/Prev_sales_amount)*100 as Percent_change_sales
+	from Monthwise_sales
+	order by Month_Number
+
